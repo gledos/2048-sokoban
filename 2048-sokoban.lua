@@ -3,7 +3,7 @@
 -- desc:  2048 + sokoban game, just only 2 level demo game.
 -- site:  website link
 -- license:
--- version: 0.1
+-- version: 0.2
 -- script:  lua
 
 -- VARIABLES
@@ -61,11 +61,11 @@ map_list[999] = {
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, --
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, --
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, --
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, --
+  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,80, 1}, --
   {1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1}, --
   {1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1}, --
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, --
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,99, 1}, --
+  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, --
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}  --
 }
 
@@ -110,22 +110,26 @@ function darw()
       then
         spr(2, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2)
         -- rect((mx - 1) * 15, (my - 1) * 15, 13, 13, 7)
-      elseif (map_list[map][my][mx] >= 3) -- darw number cube
+      elseif (map_list[map][my][mx] >= 3) and (map_list[map][my][mx] <= 13) -- darw number cube
       then
         rect((mx - 1) * 15 + 1, (my - 1) * 15 + 1, 13, 13, num_cube.color[map_list[map][my][mx]])
         print(tostring(num_cube.number[map_list[map][my][mx]]),
           mx * 15 - (7 + 2 * string.len(tostring(num_cube.number[map_list[map][my][mx]]))),
           my * 15 - 10, num_cube.number_color[map_list[map][my][mx]], false, 1, true)
-        if map_list[map][my][mx] == 12
+        if map_list[map][my][mx] == 12 -- darw 1024 number
         then
           rect((mx - 1) * 15 + 1, (my - 1) * 15  + 1, 13, 13, num_cube.color[12])
-          spr(0, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2) -- darw 1024 number
+          spr(00, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2)
         end
-        if map_list[map][my][mx] == 13
+        if map_list[map][my][mx] == 13 -- darw 2048 number
         then
           rect((mx - 1) * 15 + 1, (my - 1) * 15 + 1, 13, 13, num_cube.color[13])
-          spr(32, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2) -- darw 2048 number
+          spr(32, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2)
         end
+      end
+      if map_list[map][my][mx] == 80 -- darw item X
+      then
+        spr(04, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2)
       end
     end
   end
@@ -152,19 +156,43 @@ function move_player(dx, dy)
   player.move = true
   player.x = player.x + dx
   player.y = player.y + dy
-  if map_list[map][player.y][player.x] >= 3
+  if map_list[map][player.y][player.x] == 80 then -- item X
+    map_list[map][player.y][player.x] = 0
+    for my, value in pairs(map_list[map]) do
+      for mx, value in pairs(map_list[map][my]) do
+        if (map_list[map][my][mx] >= 3) and (map_list[map][my][mx] <= 13) -- darw number cube
+        then
+          map_list[map][my][mx] = map_list[map][my][mx] + 1
+        end
+      end
+    end
+  end
+  if (map_list[map][player.y][player.x] >= 3) and (map_list[map][player.y][player.x] <= 13) -- 推箱子相关
   then
     if map_list[map][player.y + dy][player.x + dx] == 0 then
       map_list[map][player.y + dy][player.x + dx] = map_list[map][player.y][player.x]
       map_list[map][player.y][player.x] = 0
-    elseif map_list[map][player.y + dy][player.x + dx] == map_list[map][player.y][player.x] then
+    elseif map_list[map][player.y + dy][player.x + dx] == map_list[map][player.y][player.x] -- 合成相关
+    then
       map_list[map][player.y + dy][player.x + dx] = map_list[map][player.y][player.x] + 1
       map_list[map][player.y][player.x] = 0
     end
   end
-  if map_list[map][player.y][player.x] ~= 0 then
+  if map_list[map][player.y][player.x] ~= 0 then -- 行走相关
     player.x = player.x - dx
     player.y = player.y - dy
+  end
+end
+
+function random_cube_list(a)
+  if a == 1
+  then
+    return 80
+  elseif a >= 13
+  then
+    return 4
+  else
+    return 3
   end
 end
 
@@ -192,7 +220,7 @@ function create_num_cube() -- random create number cube [2]
   num_cube.create_time = num_cube.create_time - 1
   if num_cube.create_time == 0
   then
-    map_list[map][new_y][new_x] = 3
+    map_list[map][new_y][new_x] = random_cube_list(math.random(1, 20))
     num_cube.create_time = 4
   end
 end
