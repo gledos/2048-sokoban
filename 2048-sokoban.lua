@@ -1,26 +1,20 @@
 -- title:   2048 sokoban
 -- author:  gledos <cngledos@gmail.com>
--- desc:  2048 + sokoban game, just only 2 level demo game.
--- site:  website link
+-- desc:    2048 + sokoban game, just only 2 level demo game.
+-- site:    website link
 -- license:
--- version: 0.2
+-- version: 0.3
 -- script:  lua
 
 -- VARIABLES
--- directions = {
---   {x = 0, y =-1}, -- up
---   {x = 0, y = 1}, -- down
---   {x =-1, y = 0}, -- left
---   {x = 1, y = 0}  -- right
--- }
 
 map_list = {}
 map_attribute = {}
 map = 1
 
 map_list[1] = { -- demo map
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, -- 0: map wall
-  {1, 0, 0, 3, 4, 5, 6, 7, 8, 9,10,11,12, 0, 0, 1}, -- 1: map space
+  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, -- 0: map space
+  {1, 0, 0, 3, 4, 5, 6, 7, 8, 9,10,11,12, 0, 0, 1}, -- 1: map wall
   {1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, -- 2: null
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, -- 3: cube 2
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, -- 4: cube 4
@@ -39,8 +33,8 @@ map_attribute[1] = {
 }
 
 map_list[2] = { -- level 1
-  {2, 2, 1, 1, 1, 2, 2, 2}, -- 0: map wall
-  {2, 2, 1,12, 1, 2, 2, 2}, -- 1: map space
+  {2, 2, 1, 1, 1, 2, 2, 2}, -- 0: map space
+  {2, 2, 1,12, 1, 2, 2, 2}, -- 1: map wall
   {2, 2, 1, 0, 1, 1, 1, 1}, -- 2: null
   {1, 1, 1,12, 0,12,12, 1}, -- 3: cube 2
   {1,12, 0,12,12, 1, 1, 1}, -- 4: cube 4
@@ -53,6 +47,24 @@ map_attribute[2] = {
   x = 5,
   y = 4,
   target = 4,
+  endless_mode = nil,
+  create_num_mode = false
+}
+
+map_list[3] = { -- level 2
+  {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+  {2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2},
+  {2, 2, 2, 1, 1, 1, 0, 0, 0, 1, 1, 1},
+  {2, 2, 2, 1, 0,10,11, 9,11, 9,11, 1},
+  {2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1},
+  {2, 2, 2, 1, 0, 0, 0, 1, 1, 1, 1, 1},
+  {2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 2}
+}
+
+map_attribute[3] = {
+  x = 9,
+  y = 3,
+  target = 2,
   endless_mode = nil,
   create_num_mode = false
 }
@@ -89,15 +101,17 @@ player = {
   y = map_attribute[map].y,
   move = true,
   target = map_attribute[map].target,
-  cube_2048 = 0
+  cube_2048 = 0,
+  directions = {
+    up =    {x = 0, y =-1}, -- up
+    down =  {x = 0, y = 1}, -- down
+    left =  {x =-1, y = 0}, -- left
+    right = {x = 1, y = 0}, -- right
+    way =   nil
+  }
 }
 
-kenew_yago = {
-  up = false,
-  down = false,
-  left = false,
-  right = false
-}
+button_pressed = false -- 按钮是否被按下的状态变量
 
 -- FUNCTIONS
 function darw()
@@ -160,7 +174,7 @@ function move_player(dx, dy)
     map_list[map][player.y][player.x] = 0
     for my, value in pairs(map_list[map]) do
       for mx, value in pairs(map_list[map][my]) do
-        if (map_list[map][my][mx] >= 3) and (map_list[map][my][mx] <= 13) -- darw number cube
+        if (map_list[map][my][mx] >= 3) and (map_list[map][my][mx] <= 12)
         then
           map_list[map][my][mx] = map_list[map][my][mx] + 1
         end
@@ -197,31 +211,34 @@ function random_cube_list(a)
 end
 
 function create_num_cube() -- random create number cube [2]
-  map_space = {}
-  for my, value in pairs(map_list[map]) do
-    for mx, value in pairs(map_list[map][my]) do
-      if (map_list[map][my][mx] == 0) then
-        map_space[#map_space + 1] = {mx, my}
+  if map_attribute[map].create_num_mode
+  then
+    map_space = {}
+    for my, value in pairs(map_list[map]) do
+      for mx, value in pairs(map_list[map][my]) do
+        if (map_list[map][my][mx] == 0) then
+          map_space[#map_space + 1] = {mx, my}
+        end
       end
     end
-  end
-  for i, v in ipairs(map_space) do
-    if overlap(player.x, player.y, v[1], v[2])
-    then
-      table.remove(map_space, i)
+    for i, v in ipairs(map_space) do
+      if overlap(player.x, player.y, v[1], v[2])
+      then
+        table.remove(map_space, i)
+      end
     end
-  end
-  -- print(map_space[1], 10, 10, 9) -- dev log
-  random_loc = math.random(1, #map_space)
-  new_x = map_space[random_loc][1]
-  new_y = map_space[random_loc][2]
-  -- print(new_x, 10, 20, 9) -- dev log
-  -- print(new_y, 10, 30, 9) -- dev log
-  num_cube.create_time = num_cube.create_time - 1
-  if num_cube.create_time == 0
-  then
-    map_list[map][new_y][new_x] = random_cube_list(math.random(1, 20))
-    num_cube.create_time = 4
+    -- print(map_space[1], 10, 10, 9) -- dev log
+    random_loc = math.random(1, #map_space)
+    new_x = map_space[random_loc][1]
+    new_y = map_space[random_loc][2]
+    -- print(new_x, 10, 20, 9) -- dev log
+    -- print(new_y, 10, 30, 9) -- dev log
+    num_cube.create_time = num_cube.create_time - 1
+    if num_cube.create_time == 0
+    then
+      map_list[map][new_y][new_x] = random_cube_list(math.random(1, 20))
+      num_cube.create_time = 4
+    end
   end
 end
 
@@ -239,48 +256,72 @@ end
 -- GAMELOOP
 function TIC()
 
+  mouse_x, mouse_y, mouse_left, mouse_middle, mouse_right, mouse_scrollx, mouse_scrolly = mouse()
   cls(15)
   darw()
 
   if player.move
   then
-    if key(58)
+    if player.directions.way == "up"
     then
       move_player(0, -1)
-      if map_attribute[map].create_num_mode
-      then
-        create_num_cube()
-      end
+      create_num_cube()
       player.move = false
-    elseif key(59)
+    elseif player.directions.way == "down"
     then
       move_player(0, 1)
-      if map_attribute[map].create_num_mode
-      then
-        create_num_cube()
-      end
+      create_num_cube()
       player.move = false
-    elseif key(60)
+    elseif player.directions.way == "left"
     then
       move_player(-1, 0)
-      if map_attribute[map].create_num_mode
-      then
-        create_num_cube()
-      end
+      create_num_cube()
       player.move = false
-    elseif key(61)
+    elseif player.directions.way == "right"
     then
       move_player(1, 0)
-      if map_attribute[map].create_num_mode
-      then
-        create_num_cube()
-      end
+      create_num_cube()
       player.move = false
     end
-  elseif not key()
+  elseif not key() and not mouse_left
   then
     player.move = true
+    button_pressed = true
   end
+
+  --     +----+--------------+----+ --+
+  --     |  \ |      1       | /  |  46px
+  --     +----+--------------+----+ --+
+  --     |  4 |              | 2  |
+  --     +----+--------------+----+
+  --     |  / |      3       | \  |
+  --     +----+--------------+----+
+
+  if key(58) or key(23)
+  or
+    player.move and mouse_left and mouse_x >= 46 and mouse_x <= 193 and mouse_y >= 0 and mouse_y <= 45
+  then
+    player.directions.way = "up"
+  elseif key(59) or key(19)
+  or
+    player.move and mouse_left and mouse_x >= 46 and mouse_x <= 193 and mouse_y >= 90 and mouse_y <= 135
+  then
+    player.directions.way = "down"
+  elseif key(60) or key(01)
+  or
+    player.move and mouse_left and mouse_x >= 0 and mouse_x <= 45 and mouse_y >= 0 and mouse_y <= 135
+  then
+    player.directions.way = "left"
+  elseif key(61) or key(04)
+  or
+    player.move and mouse_left and mouse_x >= 194 and mouse_x <= 239 and mouse_y >= 0 and mouse_y <= 135
+  then
+    player.directions.way = "right"
+  else
+    player.directions.way = nil
+  end
+
+  player.cube_2048 = 0
 
   for my, value in pairs(map_list[map]) do
     for mx, value in pairs(map_list[map][my]) do
@@ -296,6 +337,9 @@ function TIC()
     if overlap(player.x, player.y, map_attribute[map].endless_mode[1], map_attribute[map].endless_mode[2])
     then
       map = 999
+      player.x = map_attribute[map].x
+      player.y = map_attribute[map].y
+      player.target = map_attribute[map].target
     end
   end
 
@@ -303,16 +347,14 @@ function TIC()
   then
     darw_finish("win")
     player.move = false
-    if key(48) -- rebuild map
+    if key(48) -- next map
     then
       map = map + 1
       player.x = map_attribute[map].x
       player.y = map_attribute[map].y
-      player.move = true
       player.target = map_attribute[map].target
+      player.move = true
     end
   end
-
-  player.cube_2048 = 0
 
 end
