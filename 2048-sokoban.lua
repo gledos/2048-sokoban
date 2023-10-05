@@ -3,16 +3,16 @@
 -- desc:    2048 + sokoban game, just only 2 level demo game.
 -- site:    website link
 -- license:
--- version: 0.3
+-- version: 0.4
 -- script:  lua
 
 -- VARIABLES
-
 map_list = {}
+map_data = {}
 map_attribute = {}
 map = 1
 
-map_list[1] = { -- demo map
+map_data[1] = { -- demo map
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, -- 0: map space
   {1, 0, 0, 3, 4, 5, 6, 7, 8, 9,10,11,12, 0, 0, 1}, -- 1: map wall
   {1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, -- 2: null
@@ -32,7 +32,7 @@ map_attribute[1] = {
   create_num_mode = false
 }
 
-map_list[2] = { -- level 1
+map_data[2] = { -- level 1
   {2, 2, 1, 1, 1, 2, 2, 2}, -- 0: map space
   {2, 2, 1,12, 1, 2, 2, 2}, -- 1: map wall
   {2, 2, 1, 0, 1, 1, 1, 1}, -- 2: null
@@ -51,7 +51,7 @@ map_attribute[2] = {
   create_num_mode = false
 }
 
-map_list[3] = { -- level 2
+map_data[3] = { -- level 2
   {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
   {2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2},
   {2, 2, 2, 1, 1, 1, 0, 0, 0, 1, 1, 1},
@@ -69,7 +69,7 @@ map_attribute[3] = {
   create_num_mode = false
 }
 
-map_list[999] = {
+map_data[999] = {
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, --
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, --
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, --
@@ -114,52 +114,54 @@ player = {
 button_pressed = false -- 按钮是否被按下的状态变量
 
 -- FUNCTIONS
-function darw()
+function draw()
   for my, value in pairs(map_list[map]) do
     for mx, value in pairs(map_list[map][my]) do
-      if (map_list[map][my][mx] == 0) -- darw map space
+      if (map_list[map][my][mx] == 0) -- draw map space
       then
         rect((mx - 1) * 15 + 1, (my - 1) * 15 + 1, 13, 13, 0)
-      elseif (map_list[map][my][mx] == 1) -- darw map wall
+      elseif (map_list[map][my][mx] == 1) -- draw map wall
       then
         spr(2, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2)
         -- rect((mx - 1) * 15, (my - 1) * 15, 13, 13, 7)
-      elseif (map_list[map][my][mx] >= 3) and (map_list[map][my][mx] <= 13) -- darw number cube
+      elseif (map_list[map][my][mx] >= 3) and (map_list[map][my][mx] <= 13) -- draw number cube
       then
         rect((mx - 1) * 15 + 1, (my - 1) * 15 + 1, 13, 13, num_cube.color[map_list[map][my][mx]])
         print(tostring(num_cube.number[map_list[map][my][mx]]),
           mx * 15 - (7 + 2 * string.len(tostring(num_cube.number[map_list[map][my][mx]]))),
           my * 15 - 10, num_cube.number_color[map_list[map][my][mx]], false, 1, true)
-        if map_list[map][my][mx] == 12 -- darw 1024 number
+        if map_list[map][my][mx] == 12 -- draw 1024 number
         then
           rect((mx - 1) * 15 + 1, (my - 1) * 15  + 1, 13, 13, num_cube.color[12])
           spr(00, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2)
         end
-        if map_list[map][my][mx] == 13 -- darw 2048 number
+        if map_list[map][my][mx] == 13 -- draw 2048 number
         then
           rect((mx - 1) * 15 + 1, (my - 1) * 15 + 1, 13, 13, num_cube.color[13])
           spr(32, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2)
         end
       end
-      if map_list[map][my][mx] == 80 -- darw item X
+      if map_list[map][my][mx] == 80 -- draw item X
       then
         spr(04, (mx - 1) * 15, (my - 1) * 15, 00, 1, 0, 0, 2, 2)
       end
     end
   end
-  if map_attribute[map].endless_mode -- darw endless mode cube
+  if map_attribute[map].endless_mode -- draw endless mode cube
   then
     spr(34, (map_attribute[map].endless_mode[1] - 1) * 15,
     (map_attribute[map].endless_mode[2] - 1) * 15, 00, 1, 0, 0, 2, 2)
   end
-  rect((player.x - 1) * 15 + 1, (player.y - 1) * 15 + 1, 13, 13, 9) -- darw player
+  rect((player.x - 1) * 15 + 1, (player.y - 1) * 15 + 1, 13, 13, 9) -- draw player
   print("@", player.x * 15 - 10, player.y * 15 - 10, 5)
 end
 
-function darw_finish(a)
+function draw_finish(a)
   if a == "win"
   then
     cls(0)
+    rect(46, 46, 30, 20, 8)
+    print("button", 48, 48, 5)
     print("You win!", 20, 90, 5)
     print("All 2048 is created.", 20, 100, 5)
     print("Type Space bar to next level...", 20, 110, 5)
@@ -253,12 +255,24 @@ function overlap(ax, ay, bx, by)
   return false
 end
 
+function map_load()
+  for k, v in pairs(map_data) do
+    map_list[k] = v
+  end
+  player.x = map_attribute[map].x
+  player.y = map_attribute[map].y
+  player.target = map_attribute[map].target
+end
+
+-- 初始化
+map_load()
+
 -- GAMELOOP
 function TIC()
 
   mouse_x, mouse_y, mouse_left, mouse_middle, mouse_right, mouse_scrollx, mouse_scrolly = mouse()
   cls(15)
-  darw()
+  draw()
 
   if player.move
   then
@@ -297,22 +311,22 @@ function TIC()
   --     |  / |      3       | \  |
   --     +----+--------------+----+
 
-  if key(58) or key(23)
+  if key(58) or key(23) or btnp(0) -- control ^
   or
     player.move and mouse_left and mouse_x >= 46 and mouse_x <= 193 and mouse_y >= 0 and mouse_y <= 45
   then
     player.directions.way = "up"
-  elseif key(59) or key(19)
+  elseif key(59) or key(19) or btnp(1) -- control _
   or
     player.move and mouse_left and mouse_x >= 46 and mouse_x <= 193 and mouse_y >= 90 and mouse_y <= 135
   then
     player.directions.way = "down"
-  elseif key(60) or key(01)
+  elseif key(60) or key(01) or btnp(2) -- control <
   or
     player.move and mouse_left and mouse_x >= 0 and mouse_x <= 45 and mouse_y >= 0 and mouse_y <= 135
   then
     player.directions.way = "left"
-  elseif key(61) or key(04)
+  elseif key(61) or key(04) or btnp(3) -- control >
   or
     player.move and mouse_left and mouse_x >= 194 and mouse_x <= 239 and mouse_y >= 0 and mouse_y <= 135
   then
@@ -332,28 +346,28 @@ function TIC()
     end
   end
 
-  if map_attribute[map].endless_mode
-  then
-    if overlap(player.x, player.y, map_attribute[map].endless_mode[1], map_attribute[map].endless_mode[2])
-    then
-      map = 999
-      player.x = map_attribute[map].x
-      player.y = map_attribute[map].y
-      player.target = map_attribute[map].target
-    end
-  end
-
   if player.cube_2048 == player.target
   then
-    darw_finish("win")
+    draw_finish("win")
     player.move = false
-    if key(48) -- next map
+    if key(48) or btnp(4) or btnp(5)-- next map
+    or
+      mouse_left and mouse_x >= 46 and mouse_x <= 75 and mouse_y >= 46 and mouse_y <= 65
     then
       map = map + 1
       player.x = map_attribute[map].x
       player.y = map_attribute[map].y
       player.target = map_attribute[map].target
       player.move = true
+    end
+  end
+
+  if map_attribute[map].endless_mode
+  then
+    if overlap(player.x, player.y, map_attribute[map].endless_mode[1], map_attribute[map].endless_mode[2])
+    then
+      map = 999
+      map_load()
     end
   end
 
