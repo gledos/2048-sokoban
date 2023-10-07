@@ -1,4 +1,4 @@
--- title:
+-- title:   eXit
 -- author:
 -- desc:
 -- site:

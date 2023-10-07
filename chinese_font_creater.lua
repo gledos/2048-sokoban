@@ -125,6 +125,7 @@ end
 
 function draw_kanji(character, x, y)
   local binary = hex2binary(kanji[character])
+
   for i = 1, 7, 1 do
     for j = 1, 8, 1 do
       -- trace("test", 15) -- dev log
@@ -143,6 +144,11 @@ function draw_kanji_line(paragraph, x, y)
   end
 end
 
+BINDS={}function BINDS:bind(a,b,c,d)if c==nil then c=false else assert(type(c)=="boolean","isContinuous must be nil or a boolean")end;if d==nil then d=false else assert(type(d)=="boolean","isKeyboard must be nil or a boolean")end;assert(a~=nil and b~=nil,"keyCode and func must not be nil")assert(type(a)=="number","keyCode must be a number")assert(type(b)=="function","func must be a function")assert(a%1==0 and a>=0,"keyCode must be a positive integer")table.insert(self,{key=a,exec=b,onKeyboard=d,isContinuous=c})end;function BINDS:loop()for e,f in ipairs(self)do if f.onKeyboard then if f.isContinuous then if key(f.key)then f.exec()end else if keyp(f.key)then f.exec()end end else if f.isContinuous then if btn(f.key)then f.exec()end else if btnp(f.key)then f.exec()end end end end end
+-- https://github.com/Kozova1/TIC80-Lua-Libs/blob/master/libBindKey/libBindKeyMini.lua
+
+
+
 -- GAMELOOP
 function TIC()
 
@@ -152,11 +158,11 @@ function TIC()
   draw()
   rectb(3, 3, 73, 73, 12) -- 框体
 
-  if mouse_left and mouse_x > 5 and mouse_x <= 75 and mouse_y > 5 and mouse_y <= 75 then
+  if mouse_left and mouse_x > 4 and mouse_x <= 72 and mouse_y > 4 and mouse_y <= 72 then
     kanji_data[(mouse_y + 5)//10][(mouse_x + 5)//10] = 1
   end
 
-  if mouse_right and mouse_x > 5 and mouse_x <= 75 and mouse_y > 5 and mouse_y <= 75 then
+  if mouse_right and mouse_x > 4 and mouse_x <= 72 and mouse_y > 4 and mouse_y <= 72 then
     kanji_data[(mouse_y + 5)//10][(mouse_x + 5)//10] = 0
   end
 
@@ -168,7 +174,7 @@ function TIC()
   draw_kanji_line("的奇幻计算机", 120, 60)
 
   if btn(4) then
-    exit()
     trace(binary_to_hex(kanji_data), 15)
+    exit()
   end
 end

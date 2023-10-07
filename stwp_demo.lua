@@ -1,15 +1,24 @@
--- title:
--- author:
--- desc:
--- site:
--- license:
+-- title:   game title
+-- author:  game developer, email, etc.
+-- desc:  short description
+-- site:  website link
+-- license: MIT License (change this to your license of choice)
 -- version: 0.1
 -- script:  lua
 
 -- VARIABLES
+t = 0
 
-
--- LIBRARYS
+fd = { -- floppy_disk
+    x = 20,
+    y = 24,
+    h = 32,
+    l = 32,
+    ilt = 60 * 4, -- initial_life_time
+    lt = 60 * 4, -- life_time
+    display = 0,
+    back = false -- 反向、倒带……
+}
 
 -- libBindKey
 BINDS = {}
@@ -187,19 +196,50 @@ function GUI:rect(x, y, w, h, styleSheet)
 end
 
 -- FUNCTIONS
-
-
--- STARTUP
-function BOOT()
-    -- Put your bootup code here
-
+function texrect(x1, y1, x2, y2, u1, v1, u2, v2, usemap, colorkey)
+    usemap = usemap or false
+    colorkey = colorkey or -1
+    textri(x1, y1, x1, y2, x2, y2, u1, v1, u1, v2, u2, v2, usemap, colorkey)
+    textri(x1, y1, x2, y1, x2, y2, u1, v1, u2, v1, u2, v2, usemap, colorkey)
 end
 
--- GAMELOOP
 function TIC()
-    -- # Code inside TIC() runs ~60 times per second.
-    -- Handle inputs, update game state
 
-    cls() -- Clear the screen
-    -- Render graphics, characters, objects, backgrounds, etc.
+    mouse_x, mouse_y, mouse_left, mouse_middle, mouse_right, mouse_scrollx, mouse_scrolly = mouse()
+
+    cls(3)
+    -- spr(192, x, y, 10, 1, 0, 0, 4, 4)
+
+    texrect(fd.x + (fd.l - (fd.l * (fd.lt / fd.ilt))),
+        fd.y,
+        fd.x + (fd.l * (fd.lt / fd.ilt)),
+        fd.y + fd.h, 0, 64 + fd.display, 32, 96 + fd.display, false, 10)
+
+    if fd.back then
+        fd.lt = fd.lt + 1
+    else
+        fd.lt = fd.lt - 1
+    end
+
+    if fd.lt == (fd.ilt / 2) then
+        if fd.back then
+            fd.display = 0
+        else
+            fd.display = 32
+        end
+    end
+
+    if fd.lt == 0 or fd.lt == fd.ilt then
+        fd.back = not fd.back
+        if fd.back then
+            fd.display = 32
+        else
+            fd.display = 0
+        end
+    end
+
+    print(fd.lt, 100, 7, 12)
+
+    t = t + 1
+
 end
